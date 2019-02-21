@@ -468,8 +468,15 @@ function instantiate_sigs!(fmm::FMMaps, def::RelocatableExpr, sig::RelocatableEx
     sigts = Any[sigt2methsig(sigt) for sigt in sigts]
     # Insert into the maps
     fmm.defmap[def] = (sigts, 0)
+    defex = convert(Expr, def)
     for sigt in sigts
         fmm.sigtmap[sigt] = def
+        # Also add to CodeTracking
+        meth = whichtt(sigt)
+        if isa(meth, Method)
+            CodeTracking.method_locations[sigt] = Core.LineInfoNode(mod, meth.name, meth.file, Int(meth.line), 0)
+            CodeTracking.method_definitions[sigt] = defex
+        end
     end
     return def
 end
@@ -864,6 +871,8 @@ function __init__()
     # Populate CodeTracking data for dependencies
     parse_pkg_files(PkgId(CodeTracking))
     parse_pkg_files(PkgId(OrderedCollections))
+    # Set the lookup callback
+    CodeTracking.method_lookup_callback[] = get_def
 
     # Watch the manifest file for changes
     mfile = manifest_file()
