@@ -1,4 +1,4 @@
-![splash](images/logo.png)
+<div align="center"> <img src="images/logo.png" alt="Revise.jl" width="420"></img></div>
 
 # Revise
 
